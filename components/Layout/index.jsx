@@ -1,6 +1,5 @@
-import type { FC } from 'react'
-
-const Layout: FC = ({ children }) => {
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+const Layout = ({ children }) => {
   return (
     <div className="flex flex-grow flex-col">
       <main className="">{children}</main>
