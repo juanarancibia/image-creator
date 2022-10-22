@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import 'styles/tailwind.css'
-import Layout from 'components/Layout'
 
 const MyApp = ({ Component, pageProps }) => {
   return (
-    <Layout>
-      <Component {...pageProps} />
-    </Layout>
+    <div className="flex flex-grow flex-col my-6">
+      <main className="">
+        <Component {...pageProps} />
+      </main>
+    </div>
   )
 }
 export default MyApp
