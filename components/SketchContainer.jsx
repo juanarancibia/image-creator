@@ -1,10 +1,13 @@
+/* eslint-disable no-case-declarations */
+import { Button } from '@mui/material';
 import dynamic from 'next/dynamic';
+import { SHAPES } from 'shared/constants/shapes.const';
 
 const Sketch = dynamic(import('react-p5'), { ssr: false });
 
 let r = 3; // Distance between points
-let k = 25;
-const w = r / Math.sqrt(2); // Size of each cell;
+let k = 30;
+let w = r / Math.sqrt(2); // Size of each cell;
 
 let grid = [];
 let active = [];
@@ -12,19 +15,24 @@ let ordered = [];
 
 let cols, rows;
 let color;
+let canvas;
+let p5Instance;
 
 const SketchContainer = (props) => {
   r = props.form.r;
+  w = (r - props.form.overlappingFactor * r * 0.1) / Math.sqrt(2);
 
   const setup = (p5, canvasParentRef) => {
+    p5Instance = p5;
     grid = [];
     active = [];
     ordered = [];
 
-    p5.createCanvas(350, 622).parent(canvasParentRef);
+    canvas = p5.createCanvas(350, 622).parent(canvasParentRef);
     p5.background(props.form.bgColor);
+    p5.strokeCap(p5.ROUND);
 
-    color = getColor(p5, props.form.colorPalette, '');
+    color = getColor(p5, props.form.colorPalette);
 
     initializationStep(p5);
     firstStep(p5);
@@ -60,7 +68,7 @@ const SketchContainer = (props) => {
 
   const poissonDiscDistribution = (p5) => {
     if (p5.frameCount % props.form.framesColor === 0) {
-      color = getColor(p5, props.form.colorPalette, '');
+      color = getColor(p5, props.form.colorPalette);
     }
     for (let total = 0; total < props.form.speed; total++) {
       if (active.length > 0) {
@@ -69,7 +77,7 @@ const SketchContainer = (props) => {
         let found = false;
         for (let n = 0; n < k; n++) {
           let sample = p5.constructor.Vector.random2D();
-          let m = p5.random(r, 2 * r);
+          let m = p5.random(r, 2 * props.form.r);
           sample.setMag(m);
           sample.add(pos);
           let col = p5.floor(sample.x / w);
@@ -82,13 +90,13 @@ const SketchContainer = (props) => {
             !grid[col + row * cols]
           ) {
             let ok = true;
-            for (let c = -1; c <= 1; c++) {
-              for (let r = -1; r <= 1; r++) {
-                let index = col + c + (row + r) * cols;
+            for (let ii = -1; ii <= 1; ii++) {
+              for (let jj = -1; jj <= 1; jj++) {
+                let index = col + ii + (row + jj) * cols;
                 let neighbor = grid[index];
                 if (neighbor) {
                   let d = p5.constructor.Vector.dist(sample, neighbor);
-                  if (d < r) {
+                  if (d < props.form.r) {
                     ok = false;
                   }
                 }
@@ -102,22 +110,33 @@ const SketchContainer = (props) => {
 
               p5.noFill();
               p5.stroke(color);
-              p5.strokeWeight(3);
-              // scribbleInstance.scribbleLine(sample.x, sample.y, pos.x, pos.y);
-              //   p5.line(sample.x, sample.y, pos.x, pos.y);
-              p5.point(sample.x, sample.y, pos.x, pos.y);
-              //   const sumX1 = p5.random(r);
-              //   const sumX2 = p5.random(r);
-              //   p5.triangle(
-              //     sample.x,
-              //     sample.y,
-              //     sample.x + r / 2,
-              //     sample.y + r / 2,
-              //     sample.x + r / 2,
-              //     sample.y - r / 2
-              //   );
+              p5.strokeWeight(props.form.strokeWeight);
 
-              // drawRandomCircle(sample.x, sample.y, p5);
+              switch (props.form.shape) {
+                case SHAPES.CONNECTED_LINE:
+                  p5.line(sample.x, sample.y, pos.x, pos.y);
+                  break;
+                case SHAPES.LINE:
+                  const angle =
+                    props.form.lineAngle === -1
+                      ? p5.random(360)
+                      : props.form.lineAngle;
+                  const direction = p5.constructor.Vector.fromAngle(
+                    p5.radians(angle),
+                    m
+                  );
+                  direction.add(sample);
+
+                  p5.line(sample.x, sample.y, direction.x, direction.y);
+                  break;
+                case SHAPES.POINT:
+                  p5.point(sample.x, sample.y, pos.x, pos.y);
+                  break;
+                case SHAPES.CIRCLES:
+                  drawRandomCircle(sample.x, sample.y, p5);
+                  break;
+              }
+              // scribbleInstance.scribbleLine(sample.x, sample.y, pos.x, pos.y);
 
               break;
             }
@@ -130,13 +149,48 @@ const SketchContainer = (props) => {
     }
   };
 
-  const getColor = (p5, colors, alpha) => {
-    const color = p5.random(colors);
+  const drawRandomCircle = (currentX, currentY, p5) => {
+    const layerNo = props.form.circleLayers;
+    const size = p5.random(props.form.circleSize);
+    const arcDistance = size / layerNo;
 
-    return color + alpha;
+    for (let layer = 0; layer < layerNo; layer++) {
+      const color = getColor(p5, props.form.colorPalette);
+
+      p5.strokeWeight(props.form.strokeWeight);
+      p5.stroke(color);
+      p5.noFill();
+      p5.arc(
+        currentX,
+        currentY,
+        size - layer * arcDistance,
+        size - layer * arcDistance,
+        p5.random(p5.TWO_PI),
+        p5.random(p5.TWO_PI)
+      );
+    }
   };
 
-  return <Sketch key={props.form.id} setup={setup} draw={draw} />;
+  const getColor = (p5, colors) => {
+    const color = p5.random(colors);
+
+    return color + props.form.alpha;
+  };
+
+  const saveImage = () => {
+    p5Instance.save(canvas, 'created-image.png');
+  };
+
+  return (
+    <div className="flex flex-col align-center justify-center">
+      <div style={{ width: '350px', height: '622px' }}>
+        <Sketch key={props.form.id} setup={setup} draw={draw} />
+      </div>
+      <Button className="my-8 text-lg" variant="outlined" onClick={saveImage}>
+        Save Image
+      </Button>
+    </div>
+  );
 };
 
 export default SketchContainer;

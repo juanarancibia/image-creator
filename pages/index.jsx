@@ -4,6 +4,7 @@ import { useState } from 'react';
 import ImageParametersControls from 'components/ImageParametersControls';
 import SketchContainer from 'components/SketchContainer';
 import { COLOR_PALETTES } from 'shared/constants/color-palettes.const';
+import { SHAPES } from 'shared/constants/shapes.const';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const Home = () => {
@@ -11,10 +12,17 @@ export const Home = () => {
     id: 1,
     r: 5,
     initialPoints: 3,
+    strokeWeight: 2,
+    overlappingFactor: 1,
     speed: 25,
     framesColor: 25,
     bgColor: '#fff1db',
     colorPalette: COLOR_PALETTES['repetition'],
+    alpha: 'FF',
+    shape: SHAPES.LINE,
+    lineAngle: 45,
+    circleSize: 200,
+    circleLayers: 7,
   });
 
   return (
