@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { useState } from 'react';
 import ImageParametersControls from 'components/ImageParametersControls';
 import SketchContainer from 'components/SketchContainer';
+import { COLOR_PALETTES } from 'shared/constants/color-palettes.const';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const Home = () => {
@@ -13,6 +14,7 @@ export const Home = () => {
     speed: 25,
     framesColor: 25,
     bgColor: '#fff1db',
+    colorPalette: COLOR_PALETTES['repetition'],
   });
 
   return (

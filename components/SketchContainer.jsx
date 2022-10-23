@@ -2,8 +2,8 @@ import dynamic from 'next/dynamic';
 
 const Sketch = dynamic(import('react-p5'), { ssr: false });
 
-let r = 5; // Distance between points
-let k = 1;
+let r = 3; // Distance between points
+let k = 25;
 const w = r / Math.sqrt(2); // Size of each cell;
 
 let grid = [];
@@ -24,13 +24,7 @@ const SketchContainer = (props) => {
     p5.createCanvas(350, 622).parent(canvasParentRef);
     p5.background(props.form.bgColor);
 
-    color = getColor(
-      p5,
-      '8c75ff-c553d2-2dfd60-2788f5-23054f-f21252-8834f1-c4dd92-184fd3-f9fee2-2E294E-541388-F1E9DA-FFD400-D90368-e9baaa-ffa07a-164555-ffe1d0-acd9e7-4596c7-6d8370-e45240-21d3a4-3303f9-cd2220-173df6-244ca8-a00360-b31016'
-        .split('-')
-        .map((a) => '#' + a),
-      ''
-    );
+    color = getColor(p5, props.form.colorPalette, '');
 
     initializationStep(p5);
     firstStep(p5);
@@ -66,13 +60,7 @@ const SketchContainer = (props) => {
 
   const poissonDiscDistribution = (p5) => {
     if (p5.frameCount % props.form.framesColor === 0) {
-      color = getColor(
-        p5,
-        '8c75ff-c553d2-2dfd60-2788f5-23054f-f21252-8834f1-c4dd92-184fd3-f9fee2-2E294E-541388-F1E9DA-FFD400-D90368-e9baaa-ffa07a-164555-ffe1d0-acd9e7-4596c7-6d8370-e45240-21d3a4-3303f9-cd2220-173df6-244ca8-a00360-b31016'
-          .split('-')
-          .map((a) => '#' + a),
-        ''
-      );
+      color = getColor(p5, props.form.colorPalette, '');
     }
     for (let total = 0; total < props.form.speed; total++) {
       if (active.length > 0) {
@@ -114,10 +102,10 @@ const SketchContainer = (props) => {
 
               p5.noFill();
               p5.stroke(color);
-              p5.strokeWeight(0.5);
+              p5.strokeWeight(3);
               // scribbleInstance.scribbleLine(sample.x, sample.y, pos.x, pos.y);
-              p5.line(sample.x, sample.y, pos.x, pos.y);
-              // p5.point(sample.x, sample.y, pos.x, pos.y)
+              //   p5.line(sample.x, sample.y, pos.x, pos.y);
+              p5.point(sample.x, sample.y, pos.x, pos.y);
               //   const sumX1 = p5.random(r);
               //   const sumX2 = p5.random(r);
               //   p5.triangle(
